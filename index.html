@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ahorcado de Familias Emocionales</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            width: 700px;
+            background-color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 28px;
+            border-bottom: 2px solid #6e8efb;
+            padding-bottom: 10px;
+        }
+        
+        .game-header {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .hangman-container {
+            width: 250px;
+            height: 250px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f9f9f9;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin: 20px 0;
+            font-weight: bold;
+            background-color: #f0f5ff;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .word-display {
+            font-size: 24px;
+            letter-spacing: 5px;
+            text-align: center;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #333;
+            background: #f0f5ff;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .revealed-word {
+            color: #FF5722;
+            font-weight: bold;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 18px;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .used-letters {
+            text-align: center;
+            margin: 15px 0;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        input, button {
+            padding: 10px 15px;
+            font-size: 14px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        input {
+            width: 40px;
+            text-align: center;
+            border: 2px solid #ddd;
+            font-weight: bold;
+        }
+        
+        input:focus {
+            border-color: #6e8efb;
+            outline: none;
+        }
+        
+        .guess-letter {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .guess-letter:hover {
+            background-color: #3e8e41;
+        }
+        
+        .guess-word {
+            background-color: #9C27B0;
+            color: white;
+        }
+        
+        .guess-word:hover {
+            background-color: #7b1fa2;
+        }
+        
+        .hint-letter {
+            background-color: #FF9800;
+            color: white;
+        }
+        
+        .hint-letter:hover {
+            background-color: #f57c00;
+        }
+        
+        .hint-meaning {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .hint-meaning:hover {
+            background-color: #1976d2;
+        }
+        
+        .next {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .next:hover {
+            background-color: #1976d2;
+        }
+        
+        .end-game {
+            background-color: #F44336;
+            color: white;
+        }
+        
+        .end-game:hover {
+            background-color: #d32f2f;
+        }
+        
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        canvas {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .score-board {
+            margin-top: 20px;
+            border-top: 2px solid #ddd;
+            padding-top: 15px;
+        }
+        
+        .score-board h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .score-list {
+            max-height: 150px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 25px;
+            border-radius: 10px;
+            width: 350px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .penalty-message {
+            color: #F44336;
+            text-align: center;
+            font-weight: bold;
+            margin: 10px 0;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .points-warning {
+            color: #F44336;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .negative-score {
+            color: #F44336;
+        }
+        
+        .positive-score {
+            color: #4CAF50;
+        }
+        
+        .emotion-family {
+            font-style: italic;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ahorcado de Familias Emocionales</h1>
+        
+        <div class="game-header">
+            <div class="hangman-container">
+                <canvas id="hangmanCanvas" width="220" height="220"></canvas>
+            </div>
+        </div>
+        
+        <div class="game-info">
+            <div id="familyDisplay">Familia: </div>
+            <div id="scoreDisplay">Puntaje: 0 | Ronda: 0</div>
+            <div id="attemptsDisplay">Intentos: 7</div>
+        </div>
+        
+        <div class="word-display" id="wordDisplay"></div>
+        <div id="revealedWord" class="revealed-word"></div>
+        <div id="penaltyMessage" class="penalty-message"></div>
+        
+        <div class="used-letters" id="usedLetters">Letras usadas: </div>
+        
+        <div class="controls">
+            <input type="text" id="letterInput" maxlength="1" placeholder="Letra">
+            <button class="guess-letter" onclick="guessLetter()">Adivinar Letra</button>
+            <button class="guess-word" onclick="guessWord()">Adivinar Emoción</button>
+        </div>
+        
+        <div class="controls">
+            <button class="hint-letter" onclick="hintLetter()">Pista por Letra</button>
+            <button class="hint-meaning" onclick="hintMeaning()">Pista Significado</button>
+        </div>
+        
+        <div class="actions">
+            <button class="next" id="nextButton" onclick="showSkipConfirmation()">Siguiente (-10 pts)</button>
+            <button class="end-game" onclick="endGame()">Terminar Juego</button>
+        </div>
+        
+        <div class="score-board">
+            <h3>Mejores Puntuaciones</h3>
+            <div class="score-list" id="scoreList">
+                <!-- Las puntuaciones se cargarán aquí -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para confirmar saltar palabra -->
+    <div class="modal" id="skipModal">
+        <div class="modal-content">
+            <h3>¿Saltar a la siguiente emoción?</h3>
+            <div class="points-warning">⚠️ Perderás 10 puntos por saltar esta palabra</div>
+            <p>¿Estás seguro de que quieres continuar?</p>
+            <div class="modal-buttons">
+                <button onclick="skipEmotion()" style="background-color: #2196F3; color: white;">Sí, saltar</button>
+                <button onclick="closeModal('skipModal')" style="background-color: #F44336; color: white;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para guardar puntuación -->
+    <div class="modal" id="saveScoreModal">
+        <div class="modal-content">
+            <h3>¡Juego Terminado!</h3>
+            <p>Puntuación final: <strong id="finalScore"></strong></p>
+            <p>Introduce tu nombre para guardar tu puntuación:</p>
+            <input type="text" id="playerName" placeholder="Tu nombre" maxlength="15">
+            <div class="modal-buttons">
+                <button onclick="saveScore()" style="background-color: #4CAF50; color: white;">Guardar</button>
+                <button onclick="closeModal('saveScoreModal')" style="background-color: #F44336; color: white;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración del juego
+        const familiasEmocionales = {
+            "FELICIDAD": {
+                "emociones": ["DICHA", "CONSUELO", "INSPIRACION", "OPTIMISMO", "GOZO", 
+                            "BIENESTAR", "ENTUSIASMO", "DISFRUTE", "ILUSION", "REGOBIJO"],
+                "significados": {
+                    "DICHA": "Felicidad, Suerte, estado del ánimo que se complace en la posesión de un bien.",
+                    "CONSUELO": "Alivio que siente una persona de una pena, dolor o disgusto.",
+                    "INSPIRACION": "Impulsó, estímulo creador.",
+                    "OPTIMISMO": "Tendencia de ver y juzgar las cosas considerando su aspecto más favorable.",
+                    "GOZO": "Placer, alegría, emoción por lo que es favorable o apreciable, disfrutar con algo.",
+                    "BIENESTAR": "Estado o situación de satisfacción o felicidad.",
+                    "ENTUSIASMO": "Exaltación y excitación del animo por algo que causa interés, admiración o placer.",
+                    "DISFRUTE": "Sentir satisfacción, deleitarse, gozar y aprovechar algo agradable o útil.",
+                    "ILUSION": "Entusiasmo, algo que se espera cumplido.",
+                    "REGOBIJO": "Jubilo, alegría expansiva."
+                }
+            },
+            "TRISTEZA": {
+                "emociones": ["AMARGURA", "NOSTALGIA", "DESANIMO", "MELANCOLIA", "DESOLACION", 
+                            "DECEPCION", "PENA", "APATIA", "DESGANA", "AFLICCION"],
+                "significados": {
+                    "AMARGURA": "Sentimiento de pena, aflicción o disgusto.",
+                    "NOSTALGIA": "Tristeza melancólica por el recuerdo de un bien perdido.",
+                    "DESANIMO": "Desaliento, falta de ilusión o ánimo.",
+                    "MELANCOLIA": "Tendencia a la tristeza permanente.",
+                    "DESOLACION": "Angustia, desconsuelo, soledad absoluta.",
+                    "DECEPCION": "Frustración que se da al desengañarse de lo que no satisface nuestras expectativas.",
+                    "PENA": "Aflicción, tristeza.",
+                    "APATIA": "Dejadez, falta de interés, vigor o energía.",
+                    "DESGANA": "Falta de entusiasmo, inapetencia.",
+                    "AFLICCION": "Sufrimiento, pena o tristeza."
+                }
+            },
+            "ENFADO": {
+                "emociones": ["IRRITACION", "RESENTIMIENTO", "ENERVACION", "FRUSTRACION", "HOSTILIDAD", 
+                            "DESCONSIDERACION", "COLERA", "IRA", "FURIA", "INDIGNACION"],
+                "significados": {
+                    "IRRITACION": "Acción y resultado de irritarse, provocar ira o enfadarse.",
+                    "RESENTIMIENTO": "Enojo o enfado por algo especialmente con los causantes.",
+                    "ENERVACION": "Ponerse nervioso, irritarse.",
+                    "FRUSTRACION": "Fracaso en un deseo.",
+                    "HOSTILIDAD": "Enemistad, antipatía, tensión.",
+                    "DESCONSIDERACION": "Falta de consideración y respeto.",
+                    "COLERA": "Enfado violento.",
+                    "IRA": "Furia, deseo de venganza.",
+                    "FURIA": "Ira exaltada contra algo o alguien, persona muy irritada.",
+                    "INDIGNACION": "Acto injusto, enfado."
+                }
+            },
+            "ASCO": {
+                "emociones": ["DESPRECIO", "RECHAZO", "REPUDIO", "AVERSION", "REPUGNANCIA", 
+                            "EXCLUSION", "DISCRIMINACION", "INTOLERANCIA", "DESAGRADO", "INSENSIBILIDAD"],
+                "significados": {
+                    "DESPRECIO": "Falta de estima por algo o alguien, desestimación o desaire.",
+                    "RECHAZO": "No aceptación, admisión o resistencia a algo.",
+                    "REPUDIO": "Acto de desechar o repudiar.",
+                    "AVERSION": "Asco frente a algo o a alguien.",
+                    "REPUGNANCIA": "Rechazo hacia algo o alguien.",
+                    "EXCLUSION": "Acción y efecto de excluir, que queda fuera del lugar que ocupaba.",
+                    "DISCRIMINACION": "Ideología o comportamiento social que separa y considera inferiores a las personas por su raza, clase social, sexo, religión u otros motivos ideológicos.",
+                    "INTOLERANCIA": "Falta de aceptación o tolerancia.",
+                    "DESAGRADO": "Disgusto, descontento.",
+                    "INSENSIBILIDAD": "Falta de sentimiento por las cosas que lo suelen causar."
+                }
+            },
+            "SORPRESA": {
+                "emociones": ["CURIOSIDAD", "ESTUPEFACCION", "SOBRESALTO", "DESCONCIERTO", "CONMOCION", 
+                            "EXTRAÑEZA", "CONSTERNACION", "ADMIRACION", "PERPLEJIDAD", "PASMO"],
+                "significados": {
+                    "CURIOSIDAD": "Deseo e interés por conocer lo que no se sabe.",
+                    "ESTUPEFACCION": "Sorpresa o asombro tan grandes que dejan al que lo padece atónito e incapaz de reaccionar.",
+                    "SOBRESALTO": "Sensación de temor, susto o inquietud que proviene de un acontecimiento repentino e imprevisto.",
+                    "DESCONCIERTO": "Confusión, desorden, desavenencia, falta de control.",
+                    "CONMOCION": "Alteración, agitación o inquietud del ánimo.",
+                    "EXTRAÑEZA": "Admiración, asombro, cualidad de algo raro, extraño o extraordinario.",
+                    "CONSTERNACION": "Abatimiento o pena que sufre una persona.",
+                    "ADMIRACION": "Consideración especial hacia algo o alguien por sus cualidades.",
+                    "PERPLEJIDAD": "Confusión o duda nacida del asombro.",
+                    "PASMO": "Paralización que surge del asombro extremo."
+                }
+            }
+        };
+
+        const emocionesComplejas = {
+            "CULPA": {
+                "significado": "Es una mezcla de ira y de tristeza que aparece cuando omitimos responsabilidades, lastimas a alguien, no cumples con tus expectativas, no eres fiel a tus valores o cometes un error."
+            },
+            "FRUSTRACION": {
+                "significado": "Es una mezcla de ira, tristeza, miedo que aparece como una alarma cuando un deseo o necesidad no están siendo satisfechos."
+            },
+            "CELOS": {
+                "significado": "Es una mezcla de ira, tristeza, temor y ansiedad a la pérdida de alguien a quien amas o admiras."
+            },
+            "ENVIDIA": {
+                "significado": "Es una mezcla de ira y deseo que aparece cuando anhelas algo que no tienes y que otro sí."
+            }
+        };
+
+        // Variables del juego
+        let emocionActual = null;
+        let familiaActual = null;
+        let letrasAdivinadas = [];
+        let letrasUsadas = [];
+        let intentos = 0;
+        const maxIntentos = 7;
+        let puntaje = 0;
+        let rondas = 0;
+        let juegoTerminado = false;
+
+        // Elementos del DOM
+        const hangmanCanvas = document.getElementById('hangmanCanvas');
+        const ctx = hangmanCanvas.getContext('2d');
+        const familyDisplay = document.getElementById('familyDisplay');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const attemptsDisplay = document.getElementById('attemptsDisplay');
+        const wordDisplay = document.getElementById('wordDisplay');
+        const usedLetters = document.getElementById('usedLetters');
+        const letterInput = document.getElementById('letterInput');
+        const nextButton = document.getElementById('nextButton');
+        const scoreList = document.getElementById('scoreList');
+        const skipModal = document.getElementById('skipModal');
+        const saveScoreModal = document.getElementById('saveScoreModal');
+        const finalScoreElement = document.getElementById('finalScore');
+        const playerNameInput = document.getElementById('playerName');
+        const revealedWordElement = document.getElementById('revealedWord');
+        const penaltyMessageElement = document.getElementById('penaltyMessage');
+
+        // Inicializar el juego
+        initGame();
+
+        function initGame() {
+            drawHangman(0);
+            nuevaRonda();
+            cargarPuntuaciones();
+            
+            // Configurar evento para la tecla Enter
+            letterInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    guessLetter();
+                }
+            });
+        }
+
+        function normalizarTexto(texto) {
+            if (!texto) return "";
+            return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+        }
+
+        function nuevaRonda() {
+            // Resetear elementos de revelación
+            revealedWordElement.textContent = '';
+            penaltyMessageElement.textContent = '';
+            
+            // Decidir si usar una emoción de familia o una emoción compleja (30% de probabilidad)
+            if (Math.random() < 0.7) {
+                // Usar una emoción de familia
+                const familias = Object.keys(familiasEmocionales);
+                familiaActual = familias[Math.floor(Math.random() * familias.length)];
+                const emociones = familiasEmocionales[familiaActual].emociones;
+                emocionActual = emociones[Math.floor(Math.random() * emociones.length)];
+            } else {
+                // Usar una emoción compleja
+                familiaActual = "EMOCIÓN COMPLEJA";
+                const emociones = Object.keys(emocionesComplejas);
+                emocionActual = emociones[Math.floor(Math.random() * emociones.length)];
+            }
+            
+            letrasAdivinadas = Array(emocionActual.length).fill('_');
+            letrasUsadas = [];
+            intentos = 0;
+            rondas++;
+            
+            actualizarPalabra();
+            drawHangman(0);
+            usedLetters.textContent = "Letras usadas: ";
+            attemptsDisplay.textContent = `Intentos: ${maxIntentos}`;
+            actualizarPuntaje();
+            familyDisplay.textContent = `Familia: ${familiaActual}`;
+            
+            letterInput.focus();
+            juegoTerminado = false;
+        }
+
+        function drawHangman(step) {
+            ctx.clearRect(0, 0, hangmanCanvas.width, hangmanCanvas.height);
+            ctx.strokeStyle = "#333";
+            ctx.lineWidth = 3;
+            
+            // Dibujar la horca base
+            ctx.beginPath();
+            ctx.moveTo(30, 200);
+            ctx.lineTo(180, 200);
+            ctx.moveTo(80, 200);
+            ctx.lineTo(80, 30);
+            ctx.moveTo(80, 30);
+            ctx.lineTo(150, 30);
+            ctx.moveTo(150, 30);
+            ctx.lineTo(150, 50);
+            ctx.stroke();
+            
+            // Partes del cuerpo según los intentos fallidos
+            if (step >= 1) {
+                // Cabeza
+                ctx.beginPath();
+                ctx.arc(150, 70, 20, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            if (step >= 2) {
+                // Cuerpo
+                ctx.beginPath();
+                ctx.moveTo(150, 90);
+                ctx.lineTo(150, 150);
+                ctx.stroke();
+            }
+            if (step >= 3) {
+                // Brazo izquierdo
+                ctx.beginPath();
+                ctx.moveTo(150, 100);
+                ctx.lineTo(120, 130);
+                ctx.stroke();
+            }
+            if (step >= 4) {
+                // Brazo derecho
+                ctx.beginPath();
+                ctx.moveTo(150, 100);
+                ctx.lineTo(180, 130);
+                ctx.stroke();
+            }
+            if (step >= 5) {
+                // Pierna izquierda
+                ctx.beginPath();
+                ctx.moveTo(150, 150);
+                ctx.lineTo(120, 180);
+                ctx.stroke();
+            }
+            if (step >= 6) {
+                // Pierna derecha
+                ctx.beginPath();
+                ctx.moveTo(150, 150);
+                ctx.lineTo(180, 180);
+                ctx.stroke();
+            }
+            if (step >= 7) {
+                // Cara
+                ctx.beginPath();
+                // Ojos
+                ctx.moveTo(140, 65);
+                ctx.lineTo(145, 70);
+                ctx.moveTo(160, 65);
+                ctx.lineTo(155, 70);
+                // Boca triste
+                ctx.arc(150, 80, 10, 0, Math.PI);
+                ctx.stroke();
+            }
+        }
+
+        function actualizarPalabra() {
+            wordDisplay.textContent = letrasAdivinadas.join(' ');
+        }
+        
+        function actualizarPuntaje() {
+            // Aplicar clase según si el puntaje es positivo o negativo
+            if (puntaje < 0) {
+                scoreDisplay.innerHTML = `Puntaje: <span class="negative-score">${puntaje}</span> | Ronda: ${rondas}`;
+            } else {
+                scoreDisplay.innerHTML = `Puntaje: <span class="positive-score">${puntaje}</span> | Ronda: ${rondas}`;
+            }
+        }
+
+        function guessLetter() {
+            if (juegoTerminado) return;
+            
+            const letra = letterInput.value.toUpperCase();
+            letterInput.value = '';
+            
+            if (letra.length !== 1 || !letra.match(/[A-ZÑ]/i)) {
+                alert("Ingresa una sola letra válida");
+                return;
+            }
+            
+            const letraNormalizada = normalizarTexto(letra);
+            
+            if (letrasUsadas.includes(letraNormalizada)) {
+                alert(`Ya usaste la letra ${letra}`);
+                return;
+            }
+            
+            letrasUsadas.push(letraNormalizada);
+            usedLetters.textContent = `Letras usadas: ${letrasUsadas.sort().join(', ')}`;
+            
+            const emocionNormalizada = normalizarTexto(emocionActual);
+            
+            if (emocionNormalizada.includes(letraNormalizada)) {
+                for (let i = 0; i < emocionNormalizada.length; i++) {
+                    if (emocionNormalizada[i] === letraNormalizada) {
+                        letrasAdivinadas[i] = emocionActual[i];
+                    }
+                }
+                actualizarPalabra();
+                
+                // Sumar puntos por letra correcta
+                puntaje += 5;
+                
+                if (!letrasAdivinadas.includes('_')) {
+                    // Bonus por completar la palabra
+                    puntaje += 25;
+                    alert(`¡Correcto! ¡La emoción es ${emocionActual}!\nGanas 30 puntos (5 por letra + 25 bonus)`);
+                    juegoTerminado = true;
+                }
+            } else {
+                // Restar puntos por letra incorrecta
+                puntaje -= 5;
+                intentos++;
+                drawHangman(intentos);
+                attemptsDisplay.textContent = `Intentos: ${maxIntentos - intentos}`;
+                
+                if (intentos >= maxIntentos) {
+                    alert(`¡Perdiste! La emoción era: ${emocionActual}`);
+                    revelarPalabra();
+                    juegoTerminado = true;
+                }
+            }
+            
+            actualizarPuntaje();
+        }
+
+        function guessWord() {
+            if (juegoTerminado) return;
+            
+            const respuesta = prompt("¿Cuál crees que es la emoción?");
+            
+            if (respuesta) {
+                const respuestaNormalizada = normalizarTexto(respuesta);
+                const emocionNormalizada = normalizarTexto(emocionActual);
+                
+                if (respuestaNormalizada === emocionNormalizada) {
+                    // Sumar puntos por adivinar la palabra
+                    puntaje += 30;
+                    alert(`¡Has adivinado! La emoción es ${emocionActual}!\nGanas 30 puntos`);
+                    letrasAdivinadas = emocionActual.split('');
+                    actualizarPalabra();
+                    juegoTerminado = true;
+                } else {
+                    // Restar puntos por palabra incorrecta
+                    puntaje -= 10;
+                    intentos++;
+                    drawHangman(intentos);
+                    attemptsDisplay.textContent = `Intentos: ${maxIntentos - intentos}`;
+                    alert(`"${respuesta.toUpperCase()}" no es la emoción correcta. Pierdes 10 puntos y un intento.`);
+                    
+                    if (intentos >= maxIntentos) {
+                        alert(`¡Perdiste! La emoción era: ${emocionActual}`);
+                        revelarPalabra();
+                        juegoTerminado = true;
+                    }
+                }
+                
+                actualizarPuntaje();
+            }
+        }
+
+        function hintLetter() {
+            if (juegoTerminado) return;
+            
+            const emocionNormalizada = normalizarTexto(emocionActual);
+            let letrasNoAdivinadas = [];
+            
+            for (let i = 0; i < emocionNormalizada.length; i++) {
+                if (letrasAdivinadas[i] === '_' && !letrasUsadas.includes(emocionNormalizada[i])) {
+                    letrasNoAdivinadas.push({indice: i, letra: emocionNormalizada[i]});
+                }
+            }
+            
+            if (letrasNoAdivinadas.length === 0) {
+                alert("¡Ya has adivinado todas las letras!");
+                return;
+            }
+            
+            const {indice, letra} = letrasNoAdivinadas[Math.floor(Math.random() * letrasNoAdivinadas.length)];
+            
+            letrasUsadas.push(letra);
+            usedLetters.textContent = `Letras usadas: ${letrasUsadas.sort().join(', ')}`;
+            
+            letrasAdivinadas[indice] = emocionActual[indice];
+            actualizarPalabra();
+            
+            // Restar puntos por usar pista
+            puntaje -= 15;
+            intentos++;
+            drawHangman(intentos);
+            attemptsDisplay.textContent = `Intentos: ${maxIntentos - intentos}`;
+            
+            alert(`Se ha revelado la letra '${emocionActual[indice]}'. Pierdes 15 puntos y un intento.`);
+            
+            if (!letrasAdivinadas.includes('_')) {
+                // Bonus por completar la palabra (pero con penalización por pista)
+                puntaje += 15;
+                alert(`¡Correcto! ¡La emoción es ${emocionActual}!\nGanas 0 puntos netos (15 bonus - 15 por pista)`);
+                juegoTerminado = true;
+            }
+            
+            if (intentos >= maxIntentos) {
+                alert(`¡Perdiste! La emoción era: ${emocionActual}`);
+                revelarPalabra();
+                juegoTerminado = true;
+            }
+            
+            actualizarPuntaje();
+        }
+
+        function hintMeaning() {
+            if (juegoTerminado) return;
+            
+            let significado;
+            
+            if (familiaActual === "EMOCIÓN COMPLEJA") {
+                significado = emocionesComplejas[emocionActual].significado;
+            } else {
+                significado = familiasEmocionales[familiaActual].significados[emocionActual];
+            }
+            
+            // Restar puntos por usar pista de significado
+            puntaje -= 20;
+            intentos++;
+            drawHangman(intentos);
+            attemptsDisplay.textContent = `Intentos: ${maxIntentos - intentos}`;
+            
+            alert(`Significado: ${significado}\n\nPierdes 20 puntos y un intento por usar esta pista.`);
+            
+            if (intentos >= maxIntentos) {
+                alert(`¡Perdiste! La emoción era: ${emocionActual}`);
+                revelarPalabra();
+                juegoTerminado = true;
+            }
+            
+            actualizarPuntaje();
+        }
+        
+        function revelarPalabra() {
+            // Mostrar la palabra completa revelada
+            revealedWordElement.textContent = `La emoción era: ${emocionActual}`;
+            letrasAdivinadas = emocionActual.split('');
+            actualizarPalabra();
+        }
+
+        function showSkipConfirmation() {
+            if (juegoTerminado) {
+                nuevaRonda();
+                return;
+            }
+            
+            skipModal.style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function skipEmotion() {
+            closeModal('skipModal');
+            
+            // Revelar la palabra antes de pasar a la siguiente
+            revelarPalabra();
+            
+            // Mostrar mensaje de penalización
+            penaltyMessageElement.textContent = `¡Has perdido 10 puntos por saltar la palabra!`;
+            
+            // Penalización por saltar palabra
+            setTimeout(() => {
+                puntaje -= 10;
+                actualizarPuntaje();
+                
+                // Pasar a la siguiente ronda después de un breve delay
+                setTimeout(() => {
+                    nuevaRonda();
+                }, 1500);
+            }, 1000);
+        }
+
+        function endGame() {
+            if (puntaje > 0 || confirm("¿Estás seguro de terminar el juego?\nTu puntuación es negativa y no se guardará.")) {
+                finalScoreElement.textContent = puntaje;
+                // Aplicar estilo según si el puntaje es positivo o negativo
+                if (puntaje < 0) {
+                    finalScoreElement.className = 'negative-score';
+                } else {
+                    finalScoreElement.className = 'positive-score';
+                }
+                saveScoreModal.style.display = 'flex';
+            }
+        }
+
+        function saveScore() {
+            const nombre = playerNameInput.value.trim();
+            
+            if (!nombre) {
+                alert("Por favor, introduce tu nombre");
+                return;
+            }
+            
+            guardarPuntuacion(nombre, puntaje);
+            closeModal('saveScoreModal');
+            reiniciarJuego();
+        }
+
+        function guardarPuntuacion(nombre, puntos) {
+            // Obtener puntuaciones existentes
+            let puntuaciones = JSON.parse(localStorage.getItem('puntuacionesAhorcado')) || [];
+            
+            // Añadir nueva puntuación
+            puntuaciones.push({
+                nombre: nombre,
+                puntuacion: puntos,
+                fecha: new Date().toLocaleDateString()
+            });
+            
+            // Ordenar por puntuación (descendente)
+            puntuaciones.sort((a, b) => b.puntuacion - a.puntuacion);
+            
+            // Mantener solo las 10 mejores
+            puntuaciones = puntuaciones.slice(0, 10);
+            
+            // Guardar en localStorage
+            localStorage.setItem('puntuacionesAhorcado', JSON.stringify(puntuaciones));
+            
+            // Actualizar la visualización
+            cargarPuntuaciones();
+        }
+
+        function cargarPuntuaciones() {
+            const puntuaciones = JSON.parse(localStorage.getItem('puntuacionesAhorcado')) || [];
+            scoreList.innerHTML = '';
+            
+            if (puntuaciones.length === 0) {
+                scoreList.innerHTML = '<p>No hay puntuaciones guardadas</p>';
+                return;
+            }
+            
+            puntuaciones.forEach((puntuacion, index) => {
+                const item = document.createElement('div');
+                item.className = 'score-item';
+                
+                // Aplicar estilo según si la puntuación es positiva o negativa
+                let scoreClass = puntuacion.puntuacion < 0 ? 'negative-score' : 'positive-score';
+                
+                item.innerHTML = `
+                    <span>${index + 1}. ${puntuacion.nombre}</span>
+                    <span class="${scoreClass}">${puntuacion.puntuacion} pts (${puntuacion.fecha})</span>
+                `;
+                scoreList.appendChild(item);
+            });
+        }
+
+        function reiniciarJuego() {
+            emocionActual = null;
+            familiaActual = null;
+            letrasAdivinadas = [];
+            letrasUsadas = [];
+            intentos = 0;
+            puntaje = 0;
+            rondas = 0;
+            nuevaRonda();
+        }
+    </script>
+</body>
+</html>
